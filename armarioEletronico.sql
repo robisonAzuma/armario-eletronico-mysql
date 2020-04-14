@@ -117,7 +117,7 @@ constraint fk_nivelPermissao FOREIGN KEY (nivel) REFERENCES nivelusuario(id),
 constraint fk_chavePermissao FOREIGN KEY (chave) REFERENCES chave(id)
 ) ENGINE = InnoDB;
 
-<<<<<<< HEAD
+
 /* teste de trigger automatiza o datetime de entrega e retirada, quando der um update no entregue ele atualiza sozinho */
 
 delimiter $$
