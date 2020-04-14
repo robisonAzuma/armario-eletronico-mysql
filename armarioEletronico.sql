@@ -52,6 +52,9 @@ CONSTRAINT fk_nivel FOREIGN KEY (nivel) REFERENCES nivelusuario(id)
 
 
 INSERT INTO usuario VALUES (1,'Edilson Bitencourt','edilsonb','e10adc3949ba59abbe56e057f20f883e',1," ");
+INSERT INTO usuario VALUES (2,'Larissa Benedet','larissavb','12345',1," ");
+INSERT INTO usuario VALUES (3,'Robison Azuma','robisonaz','123456',1," ");
+INSERT INTO usuario VALUES (4,'Bruno Fialho','brunofialho','1234',3," ");
 
 /* Criação da tabela de tipo de chave
 */
@@ -76,6 +79,12 @@ id INT NOT NULL PRIMARY KEY,
 nome VARCHAR(50)
 ) ENGINE = InnoDB;
 
+INSERT INTO marca  VALUES 
+(1,'Gedore'),
+(2,'Belzer'),
+(3,'Snap on'),
+(4,'Tramontina Pro');
+
 /* Criação da tabela chave */
 
 CREATE TABLE chave (
@@ -87,13 +96,22 @@ CONSTRAINT fk_marca FOREIGN KEY (marca) REFERENCES marca(id),
 CONSTRAINT fk_tipo FOREIGN KEY (tipo) REFERENCES tipochave(id)
 ) ENGINE = InnoDB;
 
+INSERT INTO chave VALUES (1,'Chave do armário 1', 1,1);
+INSERT INTO chave VALUES (2,'Chave do armário 2', 2,2);
+INSERT INTO chave VALUES (3,'Chave do armário 3', 3,3);
+
 create table armario (
 id int not null primary key,
 chave int not null,
 usuario int not null,
+CONSTRAINT uk_chave UNIQUE (chave), /* cada armario só pode ter uma chave */
 CONSTRAINT fk_usuario FOREIGN KEY (usuario) REFERENCES usuario(id),
 CONSTRAINT fk_chave FOREIGN KEY (chave) REFERENCES chave(id)
 ) ENGINE = InnoDB;
+
+INSERT INTO armario VALUES (1, 1, 1);
+INSERT INTO armario VALUES (2, 2, 2);
+INSERT INTO armario VALUES (3, 3, 3);
 
 /* tabela retirarChave e permissão */
 
@@ -105,10 +123,16 @@ chave int not null,
 dataHoraRetirada datetime,
 dataHoraEntrega datetime,
 entregue boolean not null,
+CONSTRAINT uk_chave UNIQUE (chave), /* cada armario só pode ter uma chave */
+CONSTRAINT uk_armario UNIQUE (armario), /* um armario por usuario */
 constraint fk_armarioRetirar FOREIGN KEY (armario) REFERENCES armario(id),
 constraint fk_usuarioRetirar FOREIGN KEY (usuario) REFERENCES usuario(id),
 constraint fk_chaveRetirar FOREIGN KEY (chave) REFERENCES chave(id)
 ) ENGINE = InnoDB;
+
+insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (1,1,1,1,'2020-04-14 20:09:00',null,false);
+insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (2,2,2,2,'2020-04-16 20:17:00',null,false);
+insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (3,3,3,3,'2020-04-20 20:20:00',null,false);
 
 create table permissao (
 nivel int not null,
@@ -117,17 +141,5 @@ constraint fk_nivelPermissao FOREIGN KEY (nivel) REFERENCES nivelusuario(id),
 constraint fk_chavePermissao FOREIGN KEY (chave) REFERENCES chave(id)
 ) ENGINE = InnoDB;
 
-
-/* teste de trigger automatiza o datetime de entrega e retirada, quando der um update no entregue ele atualiza sozinho */
-
-delimiter $$
-CREATE DEFINER='root'@'localhost' TRIGGER 'retirarChave_AFTER_UPDATE' AFTER UPDATE ON 'retirarChave' FOR EACH ROW BEGIN
-if new.entregue = 0 then
-insert into retirarChave  values (null,null,null,null,now(),null,0);
-if new.entregue = 1 then
-insert into retirarChave  values (null,null,null,null,,null,now(),1);
-END if;
-end if;
-end
-delimiter ;
-
+insert into permissao VALUES (1,1);
+insert into permissao VALUES (5,2);
