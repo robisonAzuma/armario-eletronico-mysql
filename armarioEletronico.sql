@@ -117,10 +117,15 @@ constraint fk_nivelPermissao FOREIGN KEY (nivel) REFERENCES nivelusuario(id),
 constraint fk_chavePermissao FOREIGN KEY (chave) REFERENCES chave(id)
 ) ENGINE = InnoDB;
 
+<<<<<<< HEAD
 /* teste de trigger automatiza o datetime de entrega e retirada, quando der um update no entregue ele atualiza sozinho */
 
 delimiter $$
 CREATE DEFINER='root'@'localhost' TRIGGER 'retirarChave_AFTER_UPDATE' AFTER UPDATE ON 'retirarChave' FOR EACH ROW BEGIN
+=======
+delimiter $$
+CREATE DEFINER=`root`@`localhost` TRIGGER `retirarChave_AFTER_UPDATE` AFTER UPDATE ON `retirarChave ` FOR EACH ROW BEGIN
+>>>>>>> 77ce26ba973a835fd4357f52e88ca1935331760d
 if new.entregue = 0 then
 insert into retirarChave  values (null,null,null,null,now(),null,0);
 if new.entregue = 1 then
@@ -128,4 +133,8 @@ insert into retirarChave  values (null,null,null,null,,null,now(),1);
 END if;
 end if;
 end
+<<<<<<< HEAD
 delimiter ;
+=======
+delimiter ;
+>>>>>>> 77ce26ba973a835fd4357f52e88ca1935331760d
