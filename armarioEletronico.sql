@@ -4,7 +4,7 @@ use SA;
 
 /*
 ### EXCLUSÃO DE TABELAS
-gigigigigiggigi
+gigigigigiggigiyq5yyegegeageg ooooooooooo
 */
 
 DROP TABLE IF EXISTS usuario;
