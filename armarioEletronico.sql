@@ -19,7 +19,6 @@ DROP TABLE IF EXISTS armario;
 @autor: Larissa V. Benedet e Robison A. Rodrigues
 @Data de Criação: 17/02/2020
 @Data da Última Atualização: 13/04/2020
-
 * Criação da tabela de nível de usuário  
 */
 
@@ -44,17 +43,18 @@ id INT NOT NULL PRIMARY KEY,
 nome VARCHAR(60) NOT NULL,
 login VARCHAR(50) NOT NULL,
 senha VARCHAR(128) NOT NULL,
-nivel INT NOT NULL,
+nivel int not null,
 biometria mediumblob,
 CONSTRAINT uk_login UNIQUE (login),
 CONSTRAINT fk_nivel FOREIGN KEY (nivel) REFERENCES nivelusuario(id) 
 ) ENGINE = InnoDB;
 
-
 INSERT INTO usuario VALUES (1,'Edilson Bitencourt','edilsonb','e10adc3949ba59abbe56e057f20f883e',1," ");
 INSERT INTO usuario VALUES (2,'Larissa Benedet','larissavb','12345',1," ");
 INSERT INTO usuario VALUES (3,'Robison Azuma','robisonaz','123456',1," ");
-INSERT INTO usuario VALUES (4,'Bruno Fialho','brunofialho','1234',3," ");
+INSERT INTO usuario VALUES (4,'Bruno Fialho','brunofialho','1234',5," ");
+INSERT INTO usuario VALUES (5,'Mariazinha','mariafofa','123',4," ");
+
 
 /* Criação da tabela de tipo de chave
 */
@@ -135,11 +135,16 @@ insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntr
 insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (3,3,3,3,'2020-04-20 20:20:00',null,false);
 
 create table permissao (
+usuario int not null,
 nivel int not null,
 chave int not null,
 constraint fk_nivelPermissao FOREIGN KEY (nivel) REFERENCES nivelusuario(id),
 constraint fk_chavePermissao FOREIGN KEY (chave) REFERENCES chave(id)
 ) ENGINE = InnoDB;
 
-insert into permissao VALUES (1,1);
-insert into permissao VALUES (5,2);
+insert into permissao VALUES (1,1,1);
+insert into permissao VALUES (2,5,2);
+
+/* inner join para ver o id, nome e nível do usuario */
+select usuario.id, usuario.nome, nivelusuario.nivel from usuario inner join nivelusuario on nivelusuario.id = usuario.nivel;
+
