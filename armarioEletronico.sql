@@ -1,20 +1,19 @@
-drop database if exists SA;
-create database SA;
-use SA;
+
 
 /*
 ### EXCLUSÃO DE TABELAS
 */
-
+DROP TABLE IF EXISTS permissao;
+drop table if exists Abertura;
+DROP TABLE IF EXISTS retirarChave;
+DROP TABLE IF EXISTS armario;
+DROP TABLE IF EXISTS chave;
+DROP TABLE IF EXISTS marca;
+DROP TABLE IF EXISTS tipochave;
 DROP TABLE IF EXISTS usuario;
 DROP TABLE IF EXISTS nivelusuario;
-DROP TABLE IF EXISTS chave;
-DROP TABLE IF EXISTS tipochave;
-DROP TABLE IF EXISTS marca;
-DROP TABLE IF EXISTS retirarChave;
-DROP TABLE IF EXISTS permissao;
-DROP TABLE IF EXISTS armario;
 
+SET SQL_SAFE_UPDATES=0;
 /*
 @autor: Larissa V. Benedet e Robison A. Rodrigues
 @Data de Criação: 17/02/2020
@@ -43,18 +42,24 @@ id INT NOT NULL PRIMARY KEY,
 nome VARCHAR(60) NOT NULL,
 login VARCHAR(50) NOT NULL,
 senha VARCHAR(128) NOT NULL,
-nivel int not null,
+nivel INT NOT NULL,
 biometria mediumblob,
 CONSTRAINT uk_login UNIQUE (login),
 CONSTRAINT fk_nivel FOREIGN KEY (nivel) REFERENCES nivelusuario(id) 
 ) ENGINE = InnoDB;
 
+
+
+
 INSERT INTO usuario VALUES (1,'Edilson Bitencourt','edilsonb','e10adc3949ba59abbe56e057f20f883e',1," ");
 INSERT INTO usuario VALUES (2,'Larissa Benedet','larissavb','12345',1," ");
 INSERT INTO usuario VALUES (3,'Robison Azuma','robisonaz','123456',1," ");
-INSERT INTO usuario VALUES (4,'Bruno Fialho','brunofialho','1234',5," ");
-INSERT INTO usuario VALUES (5,'Mariazinha','mariafofa','123',4," ");
+INSERT INTO usuario VALUES (4,'Bruno Fialho','brunofialho','1234',3," ");
+INSERT INTO usuario VALUES (5,'Bruno','brunoo','1234',5," ");
+INSERT INTO usuario VALUES (6,'Brunoooooo','brulucas','84',4," ");
 
+select usuario.id, usuario.nome, nivelusuario.nivel from usuario 
+inner join nivelusuario on nivelusuario.id = usuario.nivel;
 
 /* Criação da tabela de tipo de chave
 */
@@ -116,7 +121,8 @@ INSERT INTO armario VALUES (3, 3, 3);
 /* tabela retirarChave e permissão */
 
 create table retirarChave (
-id int not null primary key,
+id
+ int not null primary key,
 usuario int not null,
 armario int not null,
 chave int not null,
@@ -130,21 +136,35 @@ constraint fk_usuarioRetirar FOREIGN KEY (usuario) REFERENCES usuario(id),
 constraint fk_chaveRetirar FOREIGN KEY (chave) REFERENCES chave(id)
 ) ENGINE = InnoDB;
 
-insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (1,1,1,1,'2020-04-14 20:09:00',null,false);
-insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (2,2,2,2,'2020-04-16 20:17:00',null,false);
-insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (3,3,3,3,'2020-04-20 20:20:00',null,false);
+insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (1,1,1,1,'2020-04-14 20:09:00',null,true);
+insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (2,2,2,2,'2020-04-16 20:17:00',null,true);
+insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (3,3,3,3,'2020-04-20 20:20:00',null,true);
+select * from retirarchave;
+
+update retirarChave set entregue = 1;
+update retirarchave set entregue = 0 where id =2;
+update retirarchave set entregue = 0 where id =3;
 
 create table permissao (
-usuario int not null,
 nivel int not null,
 chave int not null,
 constraint fk_nivelPermissao FOREIGN KEY (nivel) REFERENCES nivelusuario(id),
 constraint fk_chavePermissao FOREIGN KEY (chave) REFERENCES chave(id)
 ) ENGINE = InnoDB;
 
-insert into permissao VALUES (1,1,1);
-insert into permissao VALUES (2,5,2);
+insert into permissao VALUES (1,1);
+insert into permissao VALUES (5,2);
 
-/* inner join para ver o id, nome e nível do usuario */
-select usuario.id, usuario.nome, nivelusuario.nivel from usuario inner join nivelusuario on nivelusuario.id = usuario.nivel;
+create table Abertura(
+usuarioCOMchave int, 
+dataretirada datetime,
+constraint fk_ABERTURA_usuario FOREIGN KEY (usuarioCOMchave) REFERENCES retirarChave(usuario)
+)engine = innodb;
+
+alter table abertura add column id int not null primary key AUTO_INCREMENT;
+
+
+
+select * from Abertura;
+
 
