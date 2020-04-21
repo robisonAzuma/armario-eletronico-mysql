@@ -14,11 +14,12 @@ DROP TABLE IF EXISTS marca;
 DROP TABLE IF EXISTS retirarChave;
 DROP TABLE IF EXISTS permissao;
 DROP TABLE IF EXISTS armario;
+DROP TABLE IF EXISTS abertura;
 
 /*
 @autor: Larissa V. Benedet e Robison A. Rodrigues
 @Data de Criação: 17/02/2020
-@Data da Última Atualização: 13/04/2020
+@Data da Última Atualização: 20/04/2020
 * Criação da tabela de nível de usuário  
 */
 
@@ -145,6 +146,25 @@ constraint fk_chavePermissao FOREIGN KEY (chave) REFERENCES chave(id)
 insert into permissao VALUES (1,1,1);
 insert into permissao VALUES (2,5,2);
 
+create table abertura(
+id int not null primary key AUTO_INCREMENT,
+usuarioCOMchave int, 
+dataretirada datetime,
+constraint fk_ABERTURA_usuario FOREIGN KEY (usuarioCOMchave) REFERENCES retirarChave(usuario)
+)engine = innodb;
+
 /* inner join para ver o id, nome e nível do usuario */
 select usuario.id, usuario.nome, nivelusuario.nivel from usuario inner join nivelusuario on nivelusuario.id = usuario.nivel;
 
+/* teste de trigger - nova tabela grava quem e que horas o usuario retirou a chave */
+DELIMITER $
+CREATE DEFINER=`root`@`localhost` TRIGGER `triggersa`.`retirarchave_AFTER_UPDATE` AFTER UPDATE ON `retirarchave` FOR EACH ROW
+BEGIN
+if
+new.entregue = 0 then
+insert into abertura set dataretirada = now(),
+id = null,
+usuarioCOMchave = new.usuario;
+end if;
+END
+DELIMITER ;
