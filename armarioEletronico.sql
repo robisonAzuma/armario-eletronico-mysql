@@ -6,15 +6,18 @@ use SA;
 ### EXCLUSÃO DE TABELAS
 */
 
+DROP TABLE IF EXISTS masterusuario;
+DROP TABLE IF EXISTS permissao;
+drop table if exists Abertura;
+DROP TABLE IF EXISTS retirarChave;
+DROP TABLE IF EXISTS armario;
+DROP TABLE IF EXISTS chave;
+DROP TABLE IF EXISTS marca;
+DROP TABLE IF EXISTS tipochave;
 DROP TABLE IF EXISTS usuario;
 DROP TABLE IF EXISTS nivelusuario;
-DROP TABLE IF EXISTS chave;
-DROP TABLE IF EXISTS tipochave;
-DROP TABLE IF EXISTS marca;
-DROP TABLE IF EXISTS retirarChave;
-DROP TABLE IF EXISTS permissao;
-DROP TABLE IF EXISTS armario;
-DROP TABLE IF EXISTS abertura;
+
+/* deixa a assim que esta a ordem certa dos drops */
 
 /*
 @autor: Larissa V. Benedet e Robison A. Rodrigues
@@ -56,6 +59,14 @@ INSERT INTO usuario VALUES (3,'Robison Azuma','robisonaz','123456',1," ");
 INSERT INTO usuario VALUES (4,'Bruno Fialho','brunofialho','1234',5," ");
 INSERT INTO usuario VALUES (5,'Mariazinha','mariafofa','123',4," ");
 
+/* trigger preenche aqui e da a senha para usuarios*/
+
+create table MasterUsuario(
+id int not null primary key auto_increment,
+Nome int,
+SenhaMaster int not null,
+constraint fk_NomeMaster foreign key (Nome) references usuario(id)
+) engine = InnoDB;
 
 /* Criação da tabela de tipo de chave
 */
@@ -121,6 +132,7 @@ id int not null primary key,
 usuario int not null,
 armario int not null,
 chave int not null,
+SenhaMasterUsada boolean,
 dataHoraRetirada datetime,
 dataHoraEntrega datetime,
 entregue boolean not null,
@@ -131,9 +143,9 @@ constraint fk_usuarioRetirar FOREIGN KEY (usuario) REFERENCES usuario(id),
 constraint fk_chaveRetirar FOREIGN KEY (chave) REFERENCES chave(id)
 ) ENGINE = InnoDB;
 
-insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (1,1,1,1,'2020-04-14 20:09:00',null,false);
-insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (2,2,2,2,'2020-04-16 20:17:00',null,false);
-insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (3,3,3,3,'2020-04-20 20:20:00',null,false);
+insert into retirarChave (id,usuario,armario,chave,SenhaMasterUsada,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (1,1,1,1,true,'2020-04-14 20:09:00',null,true);
+insert into retirarChave (id,usuario,armario,chave,SenhaMasterUsada,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (2,2,2,2,true,'2020-04-16 20:17:00',null,true);
+insert into retirarChave (id,usuario,armario,chave,SenhaMasterUsada,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (3,3,3,3,true,'2020-04-20 20:20:00',null,true);
 
 create table permissao (
 usuario int not null,
@@ -157,14 +169,25 @@ constraint fk_ABERTURA_usuario FOREIGN KEY (usuarioCOMchave) REFERENCES retirarC
 select usuario.id, usuario.nome, nivelusuario.nivel from usuario inner join nivelusuario on nivelusuario.id = usuario.nivel;
 
 /* teste de trigger - nova tabela grava quem e que horas o usuario retirou a chave */
+/* mais uma restriçao na trigger */
 DELIMITER $
-CREATE DEFINER=`root`@`localhost` TRIGGER `triggersa`.`retirarchave_AFTER_UPDATE` AFTER UPDATE ON `retirarchave` FOR EACH ROW
+CREATE DEFINER=`root`@`localhost` TRIGGER `trigersa`.`retirarchave_AFTER_UPDATE` AFTER UPDATE ON `retirarchave` FOR EACH ROW
 BEGIN
 if
-new.entregue = 0 then
+new.entregue = 0 or new.SenhaMasterUsada = true  then
 insert into abertura set dataretirada = now(),
 id = null,
 usuarioCOMchave = new.usuario;
 end if;
 END
-DELIMITER ;
+
+/* trigger que da a senha master pros desenvolvedor e contratante */
+CREATE DEFINER=`root`@`localhost` TRIGGER `trigersa`.`usuario_AFTER_INSERT` AFTER INSERT ON `usuario` FOR EACH ROW
+BEGIN
+if
+new.nivel = 1 or new.nivel = 1.2 then
+insert into MasterUsuario set SenhaMaster = 22334455,
+id = null,
+Nome = new.id;
+end if;
+END
