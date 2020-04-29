@@ -1,25 +1,26 @@
-drop database if exists SA;
-create database SA;
-use SA;
+
 
 /*
 ### EXCLUSÃO DE TABELAS
 */
-
+drop table if exists retirarChaveMaster;
+DROP TABLE IF EXISTS masterusuario;
+DROP TABLE IF EXISTS permissao;
+DROP TABLE IF EXISTS AberturaMaster;
+drop table if exists AberturaUsuarioNormal;
+DROP TABLE IF EXISTS retirarChave;
+DROP TABLE IF EXISTS armario;
+DROP TABLE IF EXISTS chave;
+DROP TABLE IF EXISTS marca;
+DROP TABLE IF EXISTS tipochave;
 DROP TABLE IF EXISTS usuario;
 DROP TABLE IF EXISTS nivelusuario;
-DROP TABLE IF EXISTS chave;
-DROP TABLE IF EXISTS tipochave;
-DROP TABLE IF EXISTS marca;
-DROP TABLE IF EXISTS retirarChave;
-DROP TABLE IF EXISTS permissao;
-DROP TABLE IF EXISTS armario;
-DROP TABLE IF EXISTS abertura;
 
+SET SQL_SAFE_UPDATES=0;
 /*
 @autor: Larissa V. Benedet e Robison A. Rodrigues
 @Data de Criação: 17/02/2020
-@Data da Última Atualização: 20/04/2020
+@Data da Última Atualização: 29/04/2020
 * Criação da tabela de nível de usuário  
 */
 
@@ -44,18 +45,30 @@ id INT NOT NULL PRIMARY KEY,
 nome VARCHAR(60) NOT NULL,
 login VARCHAR(50) NOT NULL,
 senha VARCHAR(128) NOT NULL,
-nivel int not null,
+nivel INT NOT NULL,
 biometria mediumblob,
 CONSTRAINT uk_login UNIQUE (login),
 CONSTRAINT fk_nivel FOREIGN KEY (nivel) REFERENCES nivelusuario(id) 
 ) ENGINE = InnoDB;
 
-INSERT INTO usuario VALUES (1,'Edilson Bitencourt','edilsonb','e10adc3949ba59abbe56e057f20f883e',1," ");
-INSERT INTO usuario VALUES (2,'Larissa Benedet','larissavb','12345',1," ");
-INSERT INTO usuario VALUES (3,'Robison Azuma','robisonaz','123456',1," ");
-INSERT INTO usuario VALUES (4,'Bruno Fialho','brunofialho','1234',5," ");
-INSERT INTO usuario VALUES (5,'Mariazinha','mariafofa','123',4," ");
 
+
+select usuario.id, usuario.nome, nivelusuario.nivel from usuario 
+inner join nivelusuario on nivelusuario.id = usuario.nivel;
+
+create table MasterUsuario(
+id int not null primary key auto_increment,
+Nome int,
+SenhaMaster int not null,
+constraint fk_NomeMaster foreign key (Nome) references usuario(id)
+) engine = InnoDB;
+
+select * from MasterUsuario;
+
+/*traz o nome dos usuarios Master*/
+select MasterUsuario.id,usuario.nome from MasterUsuario 
+inner join usuario on usuario.id = MasterUsuario.nome; 
+select * from MasterUsuario;
 
 /* Criação da tabela de tipo de chave
 */
@@ -110,9 +123,7 @@ CONSTRAINT fk_usuario FOREIGN KEY (usuario) REFERENCES usuario(id),
 CONSTRAINT fk_chave FOREIGN KEY (chave) REFERENCES chave(id)
 ) ENGINE = InnoDB;
 
-INSERT INTO armario VALUES (1, 1, 1);
-INSERT INTO armario VALUES (2, 2, 2);
-INSERT INTO armario VALUES (3, 3, 3);
+
 
 /* tabela retirarChave e permissão */
 
@@ -131,40 +142,92 @@ constraint fk_usuarioRetirar FOREIGN KEY (usuario) REFERENCES usuario(id),
 constraint fk_chaveRetirar FOREIGN KEY (chave) REFERENCES chave(id)
 ) ENGINE = InnoDB;
 
-insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (1,1,1,1,'2020-04-14 20:09:00',null,false);
-insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (2,2,2,2,'2020-04-16 20:17:00',null,false);
-insert into retirarChave (id,usuario,armario,chave,dataHoraRetirada,dataHoraEntrega,entregue) VALUES (3,3,3,3,'2020-04-20 20:20:00',null,false);
+create table retirarChaveMaster (
+id int not null primary key,
+usuarioMaster int not null,
+armario int not null,
+AberturaMaster boolean, 
+constraint fk_armarioRetirar_master FOREIGN KEY (armario) REFERENCES armario(id),
+constraint fk_usuarioRetirar_master FOREIGN KEY (usuarioMaster) REFERENCES MasterUsuario(id)
+) ENGINE = InnoDB;
+select * from retirarChaveMaster;
+/*tras o nome dos usuario master q abriu forcado o armario*/
+
+select retirarChaveMaster.id,usuario.nome from retirarChaveMaster 
+inner join MasterUsuario on (MasterUsuario.id = retirarChaveMaster.usuarioMaster)
+inner join usuario on usuario.id = MasterUsuario.nome; 
 
 create table permissao (
-usuario int not null,
 nivel int not null,
 chave int not null,
 constraint fk_nivelPermissao FOREIGN KEY (nivel) REFERENCES nivelusuario(id),
 constraint fk_chavePermissao FOREIGN KEY (chave) REFERENCES chave(id)
 ) ENGINE = InnoDB;
 
-insert into permissao VALUES (1,1,1);
-insert into permissao VALUES (2,5,2);
 
-create table abertura(
+create table AberturaUsuarioNormal(
 id int not null primary key AUTO_INCREMENT,
 usuarioCOMchave int, 
 dataretirada datetime,
+entregaDAchave datetime,
 constraint fk_ABERTURA_usuario FOREIGN KEY (usuarioCOMchave) REFERENCES retirarChave(usuario)
 )engine = innodb;
 
-/* inner join para ver o id, nome e nível do usuario */
-select usuario.id, usuario.nome, nivelusuario.nivel from usuario inner join nivelusuario on nivelusuario.id = usuario.nivel;
 
-/* teste de trigger - nova tabela grava quem e que horas o usuario retirou a chave */
-DELIMITER $
-CREATE DEFINER=`root`@`localhost` TRIGGER `triggersa`.`retirarchave_AFTER_UPDATE` AFTER UPDATE ON `retirarchave` FOR EACH ROW
+create table AberturaMaster(
+id int not null primary key AUTO_INCREMENT,
+usuarioCOMchaveMaster int, 
+dataretiradaMaster datetime,
+constraint fk_ABERTURAMaster_usuario FOREIGN KEY (usuarioCOMchaveMaster) REFERENCES retirarChave(usuario)
+)engine = innoDB;
+
+/*tras qual e a hora que master abriu*/ 
+select AberturaMaster.id,usuario.nome,AberturaMaster.dataretiradaMaster from AberturaMaster 
+inner join MasterUsuario on (MasterUsuario.id = AberturaMaster.usuarioCOMchaveMaster)
+inner join usuario on usuario.id = MasterUsuario.nome; 
+
+select * from AberturaMaster;
+
+/* triggers de usuario normal abrindo o armario */
+
+
+CREATE DEFINER=`root`@`localhost` TRIGGER `trigersa`.`retirarchave_AFTER_UPDATE` AFTER UPDATE ON `retirarchave` FOR EACH ROW
 BEGIN
 if
 new.entregue = 0 then
-insert into abertura set dataretirada = now(),
+insert into AberturaUsuarioNormal set dataretirada = now(),
+entregaDAchave = null,
+id = null,
+usuarioCOMchave = new.usuario;
+end if;
+if 
+new.entregue = 1 then
+insert into AberturaUsuarioNormal set entregaDAchave = now(),
+dataretirada = null,
 id = null,
 usuarioCOMchave = new.usuario;
 end if;
 END
-DELIMITER ;
+
+/* triggers de usuario master abrindo o armario forçado */
+
+CREATE DEFINER=`root`@`localhost` TRIGGER `trigersa`.`retirarchavemaster_AFTER_UPDATE` AFTER UPDATE ON `retirarchavemaster` FOR EACH ROW
+BEGIN if
+new.AberturaMaster = 1 then
+insert into AberturaMaster set dataretiradaMaster = now(),
+usuarioCOMchaveMaster = new.usuarioMaster;
+end if;
+END
+
+
+/* triggers de usuario master ganhando a chave master automatico */
+
+CREATE DEFINER=`root`@`localhost` TRIGGER `trigersa`.`usuario_AFTER_INSERT` AFTER INSERT ON `usuario` FOR EACH ROW
+BEGIN
+if
+new.nivel = 1 or new.nivel = 1.2 then
+insert into MasterUsuario set SenhaMaster = 22334455,
+id = null,
+Nome = new.id;
+end if;
+END
