@@ -19,7 +19,7 @@ DROP TABLE IF EXISTS nivelusuario;
 SET SQL_SAFE_UPDATES=0;
 /*
 @autor: Larissa V. Benedet e Robison A. Rodrigues
-@Data de Criação: 01/05/2020
+@Data de Criação: 17/02/2020
 @Data da Última Atualização: 29/04/2020
 * Criação da tabela de nível de usuário  
 */
@@ -191,5 +191,42 @@ select * from AberturaMaster;
 
 
 
-/* tabela retirada */
+/* 
 
+CREATE DEFINER=`root`@`localhost` TRIGGER `trigersa`.`usuario_AFTER_INSERT` AFTER INSERT ON `usuario` FOR EACH ROW
+BEGIN
+if
+new.nivel = 1 or new.nivel = 1.2 then
+insert into MasterUsuario set SenhaMaster = 22334455,
+id = null,
+Nome = new.id;
+end if;
+END
+
+CREATE DEFINER=`root`@`localhost` TRIGGER `trigersa`.`retirarchavemaster_AFTER_UPDATE` AFTER UPDATE ON `retirarchavemaster` FOR EACH ROW
+BEGIN if
+new.AberturaMaster = 1 then
+insert into AberturaMaster set dataretiradaMaster = now(),
+usuarioCOMchaveMaster = new.usuarioMaster;
+end if;
+END
+
+
+CREATE DEFINER=`root`@`localhost` TRIGGER `trigersa`.`retirarchave_AFTER_UPDATE` AFTER UPDATE ON `retirarchave` FOR EACH ROW
+BEGIN
+if
+new.entregue = 0 then
+insert into AberturaUsuarioNormal set dataretirada = now(),
+entregaDAchave = null,
+id = null,
+usuarioCOMchave = new.usuario;
+end if;
+if 
+new.entregue = 1 then
+insert into AberturaUsuarioNormal set entregaDAchave = now(),
+dataretirada = null,
+id = null,
+usuarioCOMchave = new.usuario;
+end if;
+END
+*/
